@@ -1,0 +1,13 @@
+POST http://localhost:8081/register
+Content-Type: application/x-www-form-urlencoded
+
+name=Test2
+&uri=http://localhost:8082
+&redirect_success=http://localhost:8082/auth-success
+&redirect_error=http://localhost:8082/auth-cancel
+
+###
+GET http://localhost:8081/auth?response_type=code&client_id=client_606d71a452ceb4.75529184&scope=basic&state=cfzezfcezfcezzef
+
+###
+GET http://localhost:8081/auth-success?state=cfzezfcezfcezzef&client_id=client_606d7195577ad7.06148222
