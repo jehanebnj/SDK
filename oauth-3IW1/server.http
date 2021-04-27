@@ -12,3 +12,14 @@ GET http://localhost:8081/auth?response_type=code&client_id=client_606c5bfe886e1
 
 ###
 GET http://localhost:8081/auth-Oui?client_id=client_606c5bfe886e14.91787997&state=dskdlnznscxjls
+
+###
+GET http://localhost:8081/token?grant_type=authorization_code&code=code_6087d197821b3&client_id=client_606c5bfe886e14.91787997&client_secret=2ce690b11c94aca36d9ec493d9121f9dbd5c96a5
+
+
+###
+GET http://localhost:8081/api
+Authorization: Bearer token_6087d1e9622951.65545313
+
+###
+GET http://localhost:8081/fixtures
