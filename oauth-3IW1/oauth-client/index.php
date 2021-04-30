@@ -3,6 +3,25 @@ const CLIENT_ID = "client_606c5bfe886e14.91787997";
 const CLIENT_SECRET = "2ce690b11c94aca36d9ec493d9121f9dbd5c96a5";
 
 
+function getUser($params)
+{
+    $result = file_get_contents("http://oauth-server:8081/token?"
+        . "client_id=" . CLIENT_ID
+        . "&client_secret=" . CLIENT_SECRET
+        . "&" . http_build_query($params));
+    $token = json_decode($result, true)["access_token"];
+    // GET USER by TOKEN
+    $context = stream_context_create([
+        'http' => [
+            'method' => "GET",
+            'header' => "Authorization: Bearer " . $token
+        ]
+    ]);
+    $result = file_get_contents("http://oauth-server:8081/api", false, $context);
+    $user = json_decode($result, true);
+    var_dump($user);
+}
+
 /**
  * AUTH_CODE WORKFLOW
  *  => Get CODE
@@ -30,31 +49,31 @@ switch ($route) {
         // GET CODE
         ["code" => $code, "state" => $state] = $_GET;
         // ECHANGE CODE => TOKEN
-        $result = file_get_contents("http://oauth-server:8081/token?"
-            . "grant_type=authorization_code"
-            . "&client_id=" . CLIENT_ID
-            . "&client_secret=" . CLIENT_SECRET
-            . "&code=" . $code);
-        $token = json_decode($result, true)["access_token"];
-        // GET USER by TOKEN
-        $context = stream_context_create([
-            'http' => [
-                'method' => "GET",
-                'header' => "Authorization: Bearer " . $token
-            ]
+        getUser([
+            "grant_type" => "authorization_code",
+            "code" => $code
         ]);
-        $result = file_get_contents("http://oauth-server:8081/api", false, $context);
-        $user = json_decode($result, true);
-        var_dump($user);
         break;
     case '/error':
         ["state" => $state] = $_GET;
         echo "Auth request with state {$state} has been declined";
         break;
     case '/password':
-        // Gérer le workflow "password" jusqu'à afficher les données utilisateurs
-        echo "password";
-        // Lien Token
+        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+            ['username' => $username, 'password' => $password] = $_POST;
+            getUser([
+                "grant_type" => "password",
+                "username" => $username,
+                "password" => $password,
+            ]);
+        } else {
+            // Gérer le workflow "password" jusqu'à afficher les données utilisateurs
+            echo "<form method='post'>";
+            echo "Username <input name='username'>";
+            echo "Password <input name='password'>";
+            echo "<input type='submit' value='Submit'>";
+            echo "</form>";
+        }
         break;
     default:
         echo 'not_found';
