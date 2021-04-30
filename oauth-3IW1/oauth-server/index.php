@@ -119,7 +119,7 @@ function handleAuth($success)
         $codes[] = [
             "code" => $code,
             "client_id" => $clientID,
-            "user_id" => uniqid('user_', true),
+            "user_id" => "user_6087d1978824c4.38987336",
             "expired_in" => (new \DateTimeImmutable())->modify('+5 minutes')
         ];
         write_file($codes, './data/code.data');
@@ -131,14 +131,36 @@ function handleAuth($success)
 
 //https://auth-server/token?grant_type=authorization_code&code=...&client_id=..&client_secret=...
 //⇒ {"access_token":"TOKEN", "expires_in":3600}
-function token()
-{
-    ["client_id" => $clientId, "client_secret" => $clientSecret, "code" => $code] = $_GET;
-    // Check client credentials
-    if (!($app = findApp(["client_id" => $clientId, "client_secret" => $clientSecret]))) throw new RuntimeException("Application credentials are invalid");
+function handleAuthCode($clientId) {
+    ["code" => $code] = $_GET;
     // Check code with client_id
     if (!($codeEntity = findCode(["code" => $code, "client_id" => $clientId]))) throw new RuntimeException("{$code} not found");
     if ($codeEntity["expired_in"]->getTimestamp() < (new DateTimeImmutable())->getTimestamp()) throw new RuntimeException("{$code} has expired");
+    return $codeEntity["user_id"];
+}
+
+//https://auth-server/token?grant_type=password&client_id=..&client_secret=...&username=...&password=...
+//⇒ {"access_token":"TOKEN", "expires_in":3600}
+function handlePassword() {
+    ["username" => $username, "password" => $password] = $_GET;
+    // Check code with client_id
+    if (!($userEntity = findUser(["username" => $username, "password" => $password]))) throw new RuntimeException("{$username} not found");
+    return $userEntity["user_id"];
+}
+
+function token()
+{
+    ["client_id" => $clientId, "client_secret" => $clientSecret, "grant_type" => $grantType] = $_GET;
+    // Check client credentials
+    if (!($app = findApp(["client_id" => $clientId, "client_secret" => $clientSecret]))) throw new RuntimeException("Application credentials are invalid");
+
+    $userId = match ($grantType) {
+        'authorization_code' => handleAuthCode($clientId),
+        'password' => handlePassword(),
+        'client_credentials' => null,
+        default => null,
+    };
+
     // Generate token
     $token = uniqid("token_", true);
     // Save token
@@ -146,7 +168,7 @@ function token()
     $tokenEntity = [
         "token" => $token,
         "client_id" => $clientId,
-        "user_id" => $codeEntity['user_id'],
+        "user_id" => $userId,
         "expired_in" => (new \DateTimeImmutable())->modify("+1 hour")
     ];
     $tokens[] = $tokenEntity;
