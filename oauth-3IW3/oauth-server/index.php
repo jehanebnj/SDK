@@ -1,43 +1,54 @@
 <?php
 
-function read_file($filename) {
-    if(!file_exists($filename)) throw new RuntimeException("{$filename} not exists");
+function read_file($filename)
+{
+    if (!file_exists($filename)) throw new RuntimeException("{$filename} not exists");
 
     $data = file($filename);
-    return array_map(fn ($item) => unserialize($item), $data);
+    return array_map(fn($item) => unserialize($item), $data);
 }
 
-function write_file($data, $filename) {
-    if(!file_exists($filename)) throw new RuntimeException("{$filename} not exists");
+function write_file($data, $filename)
+{
+    if (!file_exists($filename)) throw new RuntimeException("{$filename} not exists");
 
-    $data = array_map(fn ($item) => serialize($item), $data);
+    $data = array_map(fn($item) => serialize($item), $data);
     return file_put_contents($filename, implode(PHP_EOL, $data));
 }
 
-function findData($criteria, $filename, $findAll = false) {
+function findData($criteria, $filename, $findAll = false)
+{
     $apps = read_file($filename);
     $results = array_values(
         array_filter(
-            $apps, 
+            $apps,
             fn($app) => count(array_intersect_assoc($app, $criteria)) === count($criteria)
         )
     );
 
     if ($findAll) return $results;
-    
+
     return count($results) === 1 ? $results[0] : null;
 }
 
-function findApp($criteria) {
+function findApp($criteria)
+{
     return findData($criteria, './data/app.data');
 }
 
-function findAllCode($criteria) {
+function findAllCode($criteria)
+{
     return findData($criteria, './data/code.data', true);
 }
 
-function findCode($criteria) {
+function findCode($criteria)
+{
     return findData($criteria, './data/code.data');
+}
+
+function findToken($criteria)
+{
+    return findData($criteria, './data/token.data');
 }
 
 function register()
@@ -45,13 +56,13 @@ function register()
     ["name" => $name] = $_POST;
 
     if (findApp(["name" => $name])) throw new InvalidArgumentException("{$name} already registered");
-    
+
     $clientID = uniqid('client_', true);
     $clientSecret = sha1($clientID);
-    
+
     $apps = read_file('./data/app.data');
     $apps[] = array_merge(
-        $_POST, 
+        $_POST,
         ["client_id" => $clientID, "client_secret" => $clientSecret]
     );
 
@@ -61,7 +72,8 @@ function register()
     echo json_encode(["client_id" => $clientID, "client_secret" => $clientSecret]);
 }
 
-function auth() {
+function auth()
+{
     // Check clientID
     ["client_id" => $clientId, "scope" => $scope, "state" => $state] = $_GET;
 
@@ -76,7 +88,8 @@ function auth() {
     echo "<a href=\"/auth-Non?client_id={$clientId}&state={$state}\">Non</a>";
 }
 
-function handleAuth($success) {
+function handleAuth($success)
+{
     ["client_id" => $clientId, "state" => $state] = $_GET;
     // Get app
     $app = findApp(["client_id" => $clientId]);
@@ -108,23 +121,57 @@ function handleAuth($success) {
     // Redirect vers
     //      success => redirect_success
     //      error => redirect_error
-    header("Location: {$url}?". http_build_query($queryParams));
+    header("Location: {$url}?" . http_build_query($queryParams));
 }
 
-function token() {
-    ["client_id" => $clientId, "client_secret" => $clientSecret, "code" => $code] = $_GET;
-    // Get app
-    if (!findApp(["client_id" => $clientId, "client_secret" => $clientSecret])) throw new InvalidArgumentException("Client credentials not valid");
+function handleAuthCode()
+{
+    ["client_id" => $clientId, "code" => $code] = $_GET;
     // Get Code
     if (!($code = findCode(["code" => $code, "client_id" => $clientId]))) throw new InvalidArgumentException("{$code} not valid for app {$clientId}");
     if ($code["expiredIn"] < new DateTimeImmutable()) throw new InvalidArgumentException("{$code['code']} is expired");
+
+    return uniqid();
+}
+
+function handlePassword()
+{
+    ["username" => $username, "password" => $password] = $_GET;
+    // Check in database
+    return uniqid();
+}
+
+function token()
+{
+    ["grant_type" => $grantType, "client_id" => $clientId, "client_secret" => $clientSecret] = $_GET;
+    // Get app
+    if (!findApp(["client_id" => $clientId, "client_secret" => $clientSecret])) throw new InvalidArgumentException("Client credentials not valid");
+
+    //$userId = null;
+    //switch($grantType) {
+    //    case 'authorization_code':
+    //        $userId = handleAuthCode();
+    //        break;
+    //    case 'password':
+    //        $userId = handlePassword();
+    //        break;
+    //    default:
+    //        break;
+    //}
+    // <==>
+    $userId = match ($grantType) {
+        'authorization_code' => handleAuthCode(),
+        'password' => handlePassword(),
+        default => null
+    };
+
     // GENERATE AND SAVE Token
     $token = uniqid();
     $expiredIn = (new \DateTimeImmutable())->modify("+1 day");
     $tokens = read_file('./data/token.data');
     $tokens[] = [
         "token" => $token,
-        "user_id" => uniqid(),
+        "user_id" => $userId,
         "expiredIn" => $expiredIn
     ];
     write_file($tokens, './data/token.data');
@@ -132,6 +179,17 @@ function token() {
     echo json_encode([
         "access_token" => $token,
         "expires_in" => $expiredIn->getTimestamp() - (new DateTimeImmutable())->getTimestamp()
+    ]);
+}
+
+function me()
+{
+    $authHeader = getallheaders()["Authorization"] ?? '';
+    if (!str_starts_with($authHeader, "Bearer ")) throw new \HttpRequestException("Not authorized");
+    $token = str_replace('Bearer ', '', $authHeader);
+    if (null == ($tokenEntity = findToken(['token' => $token]))) throw new \HttpRequestException("Not authorized");
+    echo json_encode([
+        "userId" => $tokenEntity["user_id"]
     ]);
 }
 
@@ -151,6 +209,9 @@ switch ($route) {
         break;
     case '/token':
         token();
+        break;
+    case '/me':
+        me();
         break;
     default:
         http_response_code(404);
