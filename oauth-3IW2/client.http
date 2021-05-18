@@ -1,13 +1,17 @@
 POST http://localhost:8081/register
 Content-Type: application/x-www-form-urlencoded
 
-name=Test2
-&uri=http://localhost:8082
-&redirect_success=http://localhost:8082/auth-success
-&redirect_error=http://localhost:8082/auth-cancel
+name=Test3&uri=http://localhost:8082&redirect_success=http://localhost:8082/auth-success&redirect_error=http://localhost:8082/auth-cancel
 
 ###
-GET http://localhost:8081/auth?response_type=code&client_id=client_606d71a452ceb4.75529184&scope=basic&state=cfzezfcezfcezzef
+GET http://localhost:8081/auth?response_type=code&client_id=client_60a3778e70ef02.05413444&scope=basic&state=cfzezfcezfcezzef
 
 ###
-GET http://localhost:8081/auth-success?state=cfzezfcezfcezzef&client_id=client_606d7195577ad7.06148222
+GET http://localhost:8081/auth-success?state=cfzezfcezfcezzef&client_id=client_60a3778e70ef02.05413444
+
+###
+GET http://localhost:8081/token?grant_type=authorization_code&client_id=client_60a3778e70ef02.05413444&client_secret=cd989e9a4b572963e23fe39dc14c22bbceda0e60&code=60a37d84b4006
+
+###
+GET http://localhost:8081/me
+Authorization: Bearer 60a37df13c267
