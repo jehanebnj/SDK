@@ -10,7 +10,13 @@ GET http://localhost:8081/auth?response_type=code&client_id=client_60a3778e70ef0
 GET http://localhost:8081/auth-success?state=cfzezfcezfcezzef&client_id=client_60a3778e70ef02.05413444
 
 ###
-GET http://localhost:8081/token?grant_type=authorization_code&client_id=client_60a3778e70ef02.05413444&client_secret=cd989e9a4b572963e23fe39dc14c22bbceda0e60&code=60a37d84b4006
+GET http://localhost:8081/token?grant_type=authorization_code&client_id=client_60a3778e70ef02.05413444&client_secret=cd989e9a4b572963e23fe39dc14c22bbceda0e60&code=60a3919d567a1
+
+###
+GET http://localhost:8081/token?grant_type=password&client_id=client_60a3778e70ef02.05413444&client_secret=cd989e9a4b572963e23fe39dc14c22bbceda0e60&username=60a37d84b4006&password=fdsfsdfsd
+
+###
+GET http://localhost:8081/token?grant_type=client_credentials&client_id=client_60a3778e70ef02.05413444&client_secret=cd989e9a4b572963e23fe39dc14c22bbceda0e60
 
 ###
 GET http://localhost:8081/me

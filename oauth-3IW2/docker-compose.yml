@@ -7,3 +7,12 @@ services:
     command: php -S 0.0.0.0:8081
     ports:
       - 8081:8081
+
+  oauth-client:
+    image: php:alpine
+    volumes:
+      - ./oauth-client:/home/root
+    working_dir: /home/root
+    command: php -S 0.0.0.0:8081
+    ports:
+      - 8082:8081

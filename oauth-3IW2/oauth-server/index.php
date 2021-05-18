@@ -51,6 +51,11 @@ function findAllCode($criteria)
     return findInDb($criteria, './data/code.data', true);
 }
 
+function findUser($criteria)
+{
+    return ['user_id' => uniqid()];
+}
+
 function register()
 {
     ["name" => $name] = $_POST;
@@ -109,23 +114,41 @@ function handleAuth($success)
     }
     $redirectUrl = $app[$success ? "redirect_success" : "redirect_error"];
     $redirectUrl .= "?" . http_build_query($queryParams);
-    //header("Location: {$redirectUrl}");
-    echo("Location: {$redirectUrl}");
+    header("Location: {$redirectUrl}");
+    //echo("Location: {$redirectUrl}");
+}
+
+function handleAuthCode() {
+    ['code' => $code, "client_id" => $clientID] = $_GET;
+    // Authorization Code
+    if (null === ($codeEntity = findCode(["client_id" => $clientID, "code" => $code]))) throw new RuntimeException("{$code} not exists");
+    if ($codeEntity['expires_in'] < (new DateTimeImmutable())) throw new RuntimeException("Code {$code} has expired");
+    return $codeEntity['user_id'];
+}
+
+function handlePassword() {
+    ['username' => $username, 'password' => $password] = $_GET;
+    // Password
+    if (null === ($user = findUser(['username' => $username, 'password' => $password]))) throw new RuntimeException("Bad credentials");
+    return $user['user_id'];
 }
 
 function token()
 {
-    ["code" => $code, "client_id" => $clientID, "client_secret" => $clientSecret] = $_GET;
-
+    ["grant_type" => $grantType, "client_id" => $clientID, "client_secret" => $clientSecret] = $_GET;
     if (null === findApp(["client_id" => $clientID, "client_secret" => $clientSecret])) throw new RuntimeException("{$clientID} not exists");
-    if (null === ($codeEntity = findCode(["client_id" => $clientID, "code" => $code]))) throw new RuntimeException("{$code} not exists");
-    if ($codeEntity['expires_in'] < (new DateTimeImmutable())) throw new RuntimeException("Code {$code} has expired");
+
+    $userId = match ($grantType) {
+        'authorization_code' => handleAuthCode(),
+        'password' => handlePassword(),
+        default => null
+    };
 
     $expiresIn = (new DateTimeImmutable())->modify("+1 month");
     $token = [
         'token' => uniqid(),
         'expires_in' => $expiresIn,
-        'user_id' => $codeEntity['user_id'],
+        'user_id' => $userId,
         'client_id' => $clientID
     ];
     $tokens = read_file("./data/token.data");
