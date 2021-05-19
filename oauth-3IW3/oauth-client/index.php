@@ -5,7 +5,9 @@
  * "client_secret":"38201ad253c323a79d9108f4588bbc62d2e1a5c6"
  */
 const CLIENT_ID = "client_6070546c6aba63.16480463";
+const CLIENT_FBID = "280112260228105";
 const CLIENT_SECRET = "38201ad253c323a79d9108f4588bbc62d2e1a5c6";
+const CLIENT_FBSECRET = "3e5833b07ed52a57c0cad5c745cd1061";
 
 function getUser($params)
 {
@@ -33,6 +35,10 @@ function handleLogin()
         . "response_type=code"
         . "&client_id=" . CLIENT_ID
         . "&scope=basic&state=dsdsfsfds'>Login with oauth-server</a>";
+    echo "<a href='https://www.facebook.com/v2.10/dialog/oauth?"
+        . "response_type=code"
+        . "&client_id=" . CLIENT_FBID
+        . "&scope=email&state=dsdsfsfds&redirect_uri=http://localhost:8082/fbauth-success'>Login with Facebook</a>";
 }
 
 function handleSuccess()
@@ -45,8 +51,31 @@ function handleSuccess()
     ]);
 }
 
+function handleFBSuccess()
+{
+    ["code" => $code, "state" => $state] = $_GET;
+    // ECHANGE CODE => TOKEN
+    $result = file_get_contents("https://graph.facebook.com/oauth/access_token?"
+        . "client_id=" . CLIENT_FBID
+        . "&client_secret=" . CLIENT_FBSECRET
+        . "&redirect_uri=http://localhost:8082/fbauth-success"
+        . "&grant_type=authorization_code&code={$code}");
+    $token = json_decode($result, true)["access_token"];
+    // GET USER by TOKEN
+    $context = stream_context_create([
+        'http' => [
+            'method' => "GET",
+            'header' => "Authorization: Bearer " . $token
+        ]
+    ]);
+    $result = file_get_contents("https://graph.facebook.com/me?fields=id,name,email", false, $context);
+    $user = json_decode($result, true);
+    var_dump($user);
+}
+
 function handleError()
 {
+    echo "refusé";
 }
 
 /**
@@ -62,6 +91,9 @@ switch ($route) {
         break;
     case '/auth-success':
         handleSuccess();
+        break;
+    case '/fbauth-success':
+        handleFBSuccess();
         break;
     case '/auth-error':
         handleError();
