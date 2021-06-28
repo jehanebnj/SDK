@@ -1,6 +1,8 @@
 <?php
 const CLIENT_ID = "client_606c5bfe886e14.91787997";
 const CLIENT_SECRET = "2ce690b11c94aca36d9ec493d9121f9dbd5c96a5";
+const FBCLIENT_ID = "313096147158775";
+const FBCLIENT_SECRET = "c4ac86c990ffd48b3322d3734ec4ed1a";
 
 
 function getUser($params)
@@ -18,6 +20,25 @@ function getUser($params)
         ]
     ]);
     $result = file_get_contents("http://oauth-server:8081/api", false, $context);
+    $user = json_decode($result, true);
+    var_dump($user);
+}
+function getFbUser($params)
+{
+    $result = file_get_contents("https://graph.facebook.com/oauth/access_token?"
+        . "redirect_uri=http://localhost:8082/fb-success"
+        . "&client_id=" . CLIENT_ID
+        . "&client_secret=" . CLIENT_SECRET
+        . "&" . http_build_query($params));
+    $token = json_decode($result, true)["access_token"];
+    // GET USER by TOKEN
+    $context = stream_context_create([
+        'http' => [
+            'method' => "GET",
+            'header' => "Authorization: Bearer " . $token
+        ]
+    ]);
+    $result = file_get_contents("https://graph.facebook.com/me", false, $context);
     $user = json_decode($result, true);
     var_dump($user);
 }
@@ -44,12 +65,26 @@ switch ($route) {
             . "response_type=code"
             . "&client_id=" . CLIENT_ID
             . "&scope=basic&state=dsdsfsfds'>Login with oauth-server</a>";
+        echo "<a href='https://facebook.com/v2.10/dialog/oauth?"
+            . "response_type=code"
+            . "&client_id=" . FBCLIENT_ID
+            . "&redirect_uri=http://localhost:8082/fb-success"
+            . "&scope=email&state=dsdsfsfds'>Login with facebook</a>";
         break;
     case '/success':
         // GET CODE
         ["code" => $code, "state" => $state] = $_GET;
         // ECHANGE CODE => TOKEN
         getUser([
+            "grant_type" => "authorization_code",
+            "code" => $code
+        ]);
+        break;
+    case '/fb-success':
+        // GET CODE
+        ["code" => $code, "state" => $state] = $_GET;
+        // ECHANGE CODE => TOKEN
+        getFbUser([
             "grant_type" => "authorization_code",
             "code" => $code
         ]);
@@ -79,3 +114,31 @@ switch ($route) {
         echo 'not_found';
         break;
 }
+
+
+
+
+//$sdk = new OauthSDK([
+//    "facebook" => [
+//        "app_id",
+//        "app_secret"
+//    ],
+//    "oauth-server" => [
+//        "app_id",
+//        "app_secret"
+//    ]
+//    ]);
+//
+//$sdk->getLinks() => [
+//    "facebook" => "https://",
+//    "oauth-server" => "http://localhost:8081/auth"
+//]
+//
+//$token = $sdk->handleCallback();
+//$sdk->getUser();
+// return [
+//     "firstname"=>$facebookUSer["firstname"],
+//     "lastname"=>$facebookUSer["lastname"],
+//     "email"=>$facebookUSer["email"],
+//     "phone" =>$facebookUSer["phone_number"]
+// ];

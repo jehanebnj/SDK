@@ -125,8 +125,8 @@ function handleAuth($success)
         write_file($codes, './data/code.data');
         $queryParams['code'] = $code;
     }
-    header("Location: {$urlRedirect}?" . http_build_query($queryParams));
     //echo("Location: {$urlRedirect}?" . http_build_query($queryParams));
+    header("Location: {$urlRedirect}?" . http_build_query($queryParams));
 }
 
 //https://auth-server/token?grant_type=authorization_code&code=...&client_id=..&client_secret=...
@@ -179,7 +179,7 @@ function token()
 
 function api()
 {
-    preg_match("/Bearer ([\w\.]+)/", getallheaders()["Authorization"] ?? "", $matches);
+    preg_match("/Bearer ([\w\.]+)/", getallheaders()["Authorization"] ?? getallheaders()["authorization"] ?? "", $matches);
     if (!count($matches)) throw new RuntimeException("Token not found");
     $token = $matches[1];
 

@@ -1,0 +1,18 @@
+0.0.0.0:443
+
+root /home/root
+
+fastcgi / /var/run/php-fpm.sock php
+
+rewrite {
+    to {path} /index.php?{query}
+}
+
+supervisor {
+    command php-fpm
+    restart_policy always
+    redirect_stdout stdout
+    redirect_stderr stderr
+}
+
+errors stdout
