@@ -26,9 +26,9 @@ function getUser($params)
 function getFbUser($params)
 {
     $result = file_get_contents("https://graph.facebook.com/oauth/access_token?"
-        . "redirect_uri=http://localhost:8082/fb-success"
-        . "&client_id=" . CLIENT_ID
-        . "&client_secret=" . CLIENT_SECRET
+        . "redirect_uri=https://localhost/fb-success"
+        . "&client_id=" . FBCLIENT_ID
+        . "&client_secret=" . FBCLIENT_SECRET
         . "&" . http_build_query($params));
     $token = json_decode($result, true)["access_token"];
     // GET USER by TOKEN
@@ -68,7 +68,7 @@ switch ($route) {
         echo "<a href='https://facebook.com/v2.10/dialog/oauth?"
             . "response_type=code"
             . "&client_id=" . FBCLIENT_ID
-            . "&redirect_uri=http://localhost:8082/fb-success"
+            . "&redirect_uri=https://localhost/fb-success"
             . "&scope=email&state=dsdsfsfds'>Login with facebook</a>";
         break;
     case '/success':
