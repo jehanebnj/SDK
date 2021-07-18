@@ -125,6 +125,11 @@ $sdk = new SdkFacade([
             "name" => "Github",
             "client_id" => "5643357876545678",
             "client_secret" => "vuwi7x9qh0rsx9dbpsh3"]
+        ],
+        [
+            "name" => "Google",
+            "client_id" => "5643357876545678",
+            "client_secret" => "vuwi7x9qh0rsx9dbpsh3"]
     ]
 );
 
