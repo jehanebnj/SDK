@@ -115,11 +115,32 @@ switch ($route) {
         break;
 }
 
+$sdk = new SdkFacade([
+        [
+            "name" => "Facebook",
+            "client_id" => "5643357876545678",
+            "client_secret" => "vuwi7x9qh0rsx9dbpsh3"
+        ],
+        [
+            "name" => "Github",
+            "client_id" => "5643357876545678",
+            "client_secret" => "vuwi7x9qh0rsx9dbpsh3"]
+    ]
+);
 
+
+if (!isset($_GET["code"])) {
+    $links = $sdk->getLinks();
+    foreach ($links as $key => $link){
+        echo "<a href='".$link."'>".$key."</a><br>";
+    }
+} else {
+    var_dump($sdk->getUserData());
+}
 
 
 //$sdk = new OauthSDK([
-//    "facebook" => [
+//    "github" => [
 //        "app_id",
 //        "app_secret"
 //    ],
@@ -129,10 +150,10 @@ switch ($route) {
 //    ]
 //    ]);
 //
-//$sdk->getLinks() => [
+//() => [
 //    "facebook" => "https://",
 //    "oauth-server" => "http://localhost:8081/auth"
-//]
+//]z
 //
 //$token = $sdk->handleCallback();
 //$sdk->getUser();
