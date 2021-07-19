@@ -123,8 +123,8 @@ $sdk = new OauthSDK([
         ],
         [
             "name" => "Github",
-            "client_id" => "5643357876545678",
-            "client_secret" => "vuwi7x9qh0rsx9dbpsh3"]
+            "client_id" => "Iv1.08788a9b13edb91a",
+            "client_secret" => "564d4b5d930d60b450a503bb2b41866f56d61a0d"]
         ],
         [
             "name" => "Google",
