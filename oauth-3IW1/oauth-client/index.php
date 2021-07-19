@@ -115,33 +115,33 @@ switch ($route) {
         break;
 }
 
-$sdk = new OauthSDK([
-        [
-            "name" => "Facebook",
-            "client_id" => "363716535469209",
-            "client_secret" => "d41d939c08c108c28bc935d53baedbe0"
-        ],
-        [
-            "name" => "Github",
-            "client_id" => "Iv1.08788a9b13edb91a",
-            "client_secret" => "564d4b5d930d60b450a503bb2b41866f56d61a0d"]
-        ],
-        [
-            "name" => "Google",
-            "client_id" => "324837892217-5daq38h2b02mgds10nk09lftvecbof1n.apps.googleusercontent.com",
-            "client_secret" => "_BD6x1EyHn-H-MzZmPmyiopN"]
-    ]
-);
+// $sdk = new OauthSDK([
+//         [
+//             "name" => "Facebook",
+//             "client_id" => "363716535469209",
+//             "client_secret" => "d41d939c08c108c28bc935d53baedbe0"
+//         ],
+//         [
+//             "name" => "Github",
+//             "client_id" => "Iv1.08788a9b13edb91a",
+//             "client_secret" => "564d4b5d930d60b450a503bb2b41866f56d61a0d"]
+//         ],
+//         [
+//             "name" => "Google",
+//             "client_id" => "324837892217-5daq38h2b02mgds10nk09lftvecbof1n.apps.googleusercontent.com",
+//             "client_secret" => "_BD6x1EyHn-H-MzZmPmyiopN"]
+//     ]
+// );
 
 
-if (!isset($_GET["code"])) {
-    $links = $sdk->getLinks();
-    foreach ($links as $key => $link){
-        echo "<a href='".$link."'>".$key."</a><br>";
-    }
-} else {
-    var_dump($sdk->getUserData());
-}
+// if (!isset($_GET["code"])) {
+//     $links = $sdk->getLinks();
+//     foreach ($links as $key => $link){
+//         echo "<a href='".$link."'>".$key."</a><br>";
+//     }
+// } else {
+//     var_dump($sdk->getUserData());
+// }
 
 
 //$sdk = new OauthSDK([
