@@ -113,9 +113,36 @@ function getGoogleUser() {
 		print($res);
     }
 }
+function getDiscordUser() {
+    $tokenURL = 'https://discord.com/api/oauth2/token';
+    $baseURL = 'https://' . $_SERVER['SERVER_NAME'] . '/dc-success';
+    $userURL = 'https://discord.com/api/users/@me';
 
+    if (isset($_GET['code'])) {
+        $ch = curl_init($tokenURL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+            'grant_type' => 'authorization_code',
+            'client_id' => DISCORD_CLIENT_ID,
+            'client_secret' => DISCORD_CLIENT_SECRET,
+            'redirect_uri' => $baseURL,
+            'code' => $_GET['code']
+        ]));
 
+        $token = json_decode(curl_exec($ch), true)['access_token'];
 
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Authorization: Bearer $token"
+            ]
+        ]);
+
+        $result = file_get_contents($userURL, false, $context);
+        $user = json_decode($result, true);
+        var_dump($user);
+    }
+}
 /**
  * AUTH_CODE WORKFLOW
  *  => Get CODE
