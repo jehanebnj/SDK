@@ -128,8 +128,8 @@ $sdk = new OauthSDK([
         ],
         [
             "name" => "Google",
-            "client_id" => "AIzaSyBvIDmxh1YH6Ou6C46UL3gBAuyess5D2xo",
-            "client_secret" => "vuwi7x9qh0rsx9dbpsh3"]
+            "client_id" => "324837892217-5daq38h2b02mgds10nk09lftvecbof1n.apps.googleusercontent.com",
+            "client_secret" => "_BD6x1EyHn-H-MzZmPmyiopN"]
     ]
 );
 
