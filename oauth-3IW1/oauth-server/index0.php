@@ -30,13 +30,15 @@ function write_file($data, $file)
 
 function register()
 {
-    ["name" => $name] = $_POST;
+    [
+        "name" => $name
+    ] = $_POST;
 
     if (findApp(["name" => $name]) !== null) throw new InvalidArgumentException("{$name} already registered");
 
-    $clientID = uniqid("client_", true);
+    $clientID = uniqid('client_', true);
     $clientSecret = sha1($clientID);
-    $apps = read_file("./data/app.data");
+    $apps = read_file('./data/app.data');
     $apps[] = array_merge(
         ["client_id" => $clientID, "client_secret" => $clientSecret],
         $_POST
@@ -98,7 +100,7 @@ function auth()
     echo "{$app['client_id']}/{$app['name']} {$app['uri']}";
     echo $scope;
     echo "<a href='/auth-Oui?client_id={$app['client_id']}&state={$state}'>Oui</a>";
-    echo "<a href='/auth-Non?client_id={$app['client_id']}&state={$state}'>No</a>";
+    echo "<a href='/auth-Non?client_id={$app['client_id']}&state={$state}'>Non</a>";
 }
 
 function handleAuth($success)
@@ -120,8 +122,8 @@ function handleAuth($success)
             "user_id" => "user_6087d1978824c4.38987336",
             "expired_in" => (new \DateTimeImmutable())->modify('+5 minutes')
         ];
-        write_file($codes, "./data/code.data");
-        $queryParams["code"] = $code;
+        write_file($codes, './data/code.data');
+        $queryParams['code'] = $code;
     }
     //echo("Location: {$urlRedirect}?" . http_build_query($queryParams));
     header("Location: {$urlRedirect}?" . http_build_query($queryParams));
@@ -211,10 +213,10 @@ switch ($route) {
     case '/api':
         api();
         break;
-    case '/fixtures':
+    case "/fixtures":
         fixtures();
-        break;        
+        break;
     default:
-        echo "not_found";
+        echo 'not_found';
         break;
 }

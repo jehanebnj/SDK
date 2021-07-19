@@ -1,47 +1,120 @@
 <?php
-const CLIENT_ID = "client_606c5bfe886e14.91787997";
-const CLIENT_SECRET = "2ce690b11c94aca36d9ec493d9121f9dbd5c96a5";
-const FBCLIENT_ID = "313096147158775";
-const FBCLIENT_SECRET = "c4ac86c990ffd48b3322d3734ec4ed1a";
 
+const CLIENT_ID = 'client_60f324e98d1cb3.40889045';
+const CLIENT_SECRET = '626fe6480483a000f2073f1a612944aacd6ae230';
+const FACEBOOK_CLIENT_ID = '313096147158775';
+const FACEBOOK_CLIENT_SECRET = 'c4ac86c990ffd48b3322d3734ec4ed1a';
+const GOOGLE_CLIENT_ID = '324837892217-5daq38h2b02mgds10nk09lftvecbof1n.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET = '_BD6x1EyHn-H-MzZmPmyiopN';
+const DISCORD_CLIENT_ID = '866750937899859968';
+const DISCORD_CLIENT_SECRET = '1CSi64JYRxFNXqcDdYYRyUFLNXiqhrK9';
+ 
+$authorizeURL = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+$tokenURL = 'https://www.googleapis.com/oauth2/v4/token';
+$baseURL = 'https://' . $_SERVER['SERVER_NAME'] . '/gg-success';
+
+session_start();
 
 function getUser($params)
 {
-    $result = file_get_contents("http://oauth-server:8081/token?"
-        . "client_id=" . CLIENT_ID
-        . "&client_secret=" . CLIENT_SECRET
-        . "&" . http_build_query($params));
-    $token = json_decode($result, true)["access_token"];
-    // GET USER by TOKEN
-    $context = stream_context_create([
-        'http' => [
-            'method' => "GET",
-            'header' => "Authorization: Bearer " . $token
-        ]
-    ]);
-    $result = file_get_contents("http://oauth-server:8081/api", false, $context);
-    $user = json_decode($result, true);
-    var_dump($user);
+	$result = file_get_contents("https://oauth-server:8081/token?"
+		. "client_id=" . CLIENT_ID
+		. "&client_secret=" . CLIENT_SECRET
+		. "&" . http_build_query($params));
+	$token = json_decode($result, true)["access_token"];
+	// GET USER by TOKEN
+	$context = stream_context_create([
+		'http' => [
+			'method' => "GET",
+			'header' => "Authorization: Bearer " . $token
+		]
+	]);
+	$result = file_get_contents("https://oauth-server:8081/api", false, $context);
+	var_dump(json_decode($result, true));
 }
-function getFbUser($params)
+
+function home()
 {
-    $result = file_get_contents("https://graph.facebook.com/oauth/access_token?"
-        . "redirect_uri=https://localhost/fb-success"
-        . "&client_id=" . FBCLIENT_ID
-        . "&client_secret=" . FBCLIENT_SECRET
-        . "&" . http_build_query($params));
-    $token = json_decode($result, true)["access_token"];
-    // GET USER by TOKEN
-    $context = stream_context_create([
-        'http' => [
-            'method' => "GET",
-            'header' => "Authorization: Bearer " . $token
-        ]
-    ]);
-    $result = file_get_contents("https://graph.facebook.com/me", false, $context);
-    $user = json_decode($result, true);
-    var_dump($user);
+    $authorizeURL = 'https://accounts.google.com/o/oauth2/v2/auth';
+    $baseURL = 'https://' . $_SERVER['SERVER_NAME']
+    . '/gg-success';
+	$client_id = CLIENT_ID;
+	$fACEBOOK_client_id = FACEBOOK_CLIENT_ID;
+	$dIScORD_client_id = DISCORD_CLIENT_ID;
+    $_SESSION['state'] = bin2hex(random_bytes(16));
+    $params = array(
+        'response_type' => 'code',
+        'client_id' => GOOGLE_CLIENT_ID,
+        'redirect_uri' => $baseURL,
+        'scope' => 'openid email profile',
+        'state' => $_SESSION['state']
+    );
+    $google_href = $authorizeURL.'?'.http_build_query($params);
+
+	
+	echo '<a href="https://localhost:8081/auth?response_type=code&client_id=${client_id}&scope=basic&state=azerty">oauth-server</a> <br>';
+	echo '<a href="https://facebook.com/v11.0/dialog/oauth?response_type=code&client_id=${FACEBOOK_CLIENT_ID}&redirect_uri=https://localhost/fb-success">Provider Facebook</a> <br>';
+	echo '<a href="${google_href}">Provider Google</a> <br>';
+	echo '<a href="https://discord.com/api/oauth2/authorize?client_id=${dIScORD_client_id}&redirect_uri=https://localhost/dc-success&response_type=code&scope=email%20identify">Provider Discord</a>';
 }
+
+function success()
+{
+	["code" => $code, "state" => $state] = $_GET;
+
+	getUser([
+		"grant_type" => "authorization_code",
+		"code" => $code
+	]);
+}
+
+function getFacebookUser()
+{
+	["code" => $code, "state" => $state] = $_GET;
+	$result = file_get_contents("https://graph.facebook.com/oauth/access_token?"
+		. "client_id=" . FACEBOOK_CLIENT_ID
+		. "&client_secret=" . FACEBOOK_CLIENT_SECRET
+		. "&redirect_uri=https://localhost/fb-success"
+		. "&grant_type=authorization_code&code=" . $code
+	);
+	$token = json_decode($result, true)["access_token"];
+	$context = stream_context_create([
+		"http" => [
+			"method" => "GET",
+			"header" => "Authorization: Bearer " . $token
+		]
+	]);
+	$result = file_get_contents("https://graph.facebook.com/me?fields=id,name,email", false, $context);
+	var_dump(json_decode($result, true));
+}
+
+function getGoogleUser() {
+    $tokenURL = 'https://www.googleapis.com/oauth2/v4/token';
+    $baseURL = 'https://localhost/gg-success';
+
+    if (isset($_GET['code'])) {
+        if(!isset($_GET['state']) || $_SESSION['state'] != $_GET['state']) {
+            header('Location: ' . $baseURL . '?error=invalid_state');
+            die();
+        }
+        $ch = curl_init($tokenURL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+            'grant_type' => 'authorization_code',
+            'client_id' => GOOGLE_CLIENT_ID,
+            'client_secret' => GOOGLE_CLIENT_SECRET,
+            'redirect_uri' => $baseURL,
+            'code' => $_GET['code']
+        ]));
+        $data = json_decode(curl_exec($ch), true);
+        $jwt = explode('.', $data['id_token']);
+        $res = json_decode(base64_decode($jwt[1]), true);
+		print($res);
+    }
+}
+
+
 
 /**
  * AUTH_CODE WORKFLOW
@@ -57,114 +130,29 @@ function getFbUser($params)
  */
 
 $route = strtok($_SERVER['REQUEST_URI'], '?');
+
 switch ($route) {
-    case '/auth-code':
-        // Gérer le workflow "authorization_code" jusqu'à afficher les données utilisateurs
-        echo '<h1>Login with Auth-Code</h1>';
-        echo "<a href='http://localhost:8081/auth?"
-            . "response_type=code"
-            . "&client_id=" . CLIENT_ID
-            . "&scope=basic&state=dsdsfsfds'>Login with oauth-server</a>";
-        echo "<a href='https://facebook.com/v2.10/dialog/oauth?"
-            . "response_type=code"
-            . "&client_id=" . FBCLIENT_ID
-            . "&redirect_uri=https://localhost/fb-success"
-            . "&scope=email&state=dsdsfsfds'>Login with facebook</a>";
+	case '/':
+		home();
+		break;
+
+	case '/success':
+		success();
+		break;
+		
+	case '/fb-success':
+		getFacebookUser();
+		break;
+
+    case '/gg-success':
+        getGoogleUser();
         break;
-    case '/success':
-        // GET CODE
-        ["code" => $code, "state" => $state] = $_GET;
-        // ECHANGE CODE => TOKEN
-        getUser([
-            "grant_type" => "authorization_code",
-            "code" => $code
-        ]);
-        break;
-    case '/fb-success':
-        // GET CODE
-        ["code" => $code, "state" => $state] = $_GET;
-        // ECHANGE CODE => TOKEN
-        getFbUser([
-            "grant_type" => "authorization_code",
-            "code" => $code
-        ]);
-        break;
-    case '/error':
-        ["state" => $state] = $_GET;
-        echo "Auth request with state {$state} has been declined";
-        break;
-    case '/password':
-        if ($_SERVER["REQUEST_METHOD"] === "POST") {
-            ['username' => $username, 'password' => $password] = $_POST;
-            getUser([
-                "grant_type" => "password",
-                "username" => $username,
-                "password" => $password,
-            ]);
-        } else {
-            // Gérer le workflow "password" jusqu'à afficher les données utilisateurs
-            echo "<form method='post'>";
-            echo "Username <input name='username'>";
-            echo "Password <input name='password'>";
-            echo "<input type='submit' value='Submit'>";
-            echo "</form>";
-        }
-        break;
-    default:
-        echo 'not_found';
-        break;
+
+	case '/dc-success':
+		getDiscordUser();
+		break;
+		
+	default:
+		echo "404: Route $route not found";
+		break;
 }
-
-// $sdk = new OauthSDK([
-//         [
-//             "name" => "Facebook",
-//             "client_id" => "363716535469209",
-//             "client_secret" => "d41d939c08c108c28bc935d53baedbe0"
-//         ],
-//         [
-//             "name" => "Github",
-//             "client_id" => "Iv1.08788a9b13edb91a",
-//             "client_secret" => "564d4b5d930d60b450a503bb2b41866f56d61a0d"]
-//         ],
-//         [
-//             "name" => "Google",
-//             "client_id" => "324837892217-5daq38h2b02mgds10nk09lftvecbof1n.apps.googleusercontent.com",
-//             "client_secret" => "_BD6x1EyHn-H-MzZmPmyiopN"]
-//     ]
-// );
-
-
-// if (!isset($_GET["code"])) {
-//     $links = $sdk->getLinks();
-//     foreach ($links as $key => $link){
-//         echo "<a href='".$link."'>".$key."</a><br>";
-//     }
-// } else {
-//     var_dump($sdk->getUserData());
-// }
-
-
-//$sdk = new OauthSDK([
-//    "github" => [
-//        "app_id",
-//        "app_secret"
-//    ],
-//    "oauth-server" => [
-//        "app_id",
-//        "app_secret"
-//    ]
-//    ]);
-//
-//() => [
-//    "facebook" => "https://",
-//    "oauth-server" => "http://localhost:8081/auth"
-//]z
-//
-//$token = $sdk->handleCallback();
-//$sdk->getUser();
-// return [
-//     "firstname"=>$facebookUSer["firstname"],
-//     "lastname"=>$facebookUSer["lastname"],
-//     "email"=>$facebookUSer["email"],
-//     "phone" =>$facebookUSer["phone_number"]
-// ];
