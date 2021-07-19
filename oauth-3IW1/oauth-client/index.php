@@ -115,11 +115,11 @@ switch ($route) {
         break;
 }
 
-$sdk = new SdkFacade([
+$sdk = new OauthSDK([
         [
             "name" => "Facebook",
-            "client_id" => "5643357876545678",
-            "client_secret" => "vuwi7x9qh0rsx9dbpsh3"
+            "client_id" => "363716535469209",
+            "client_secret" => "d41d939c08c108c28bc935d53baedbe0"
         ],
         [
             "name" => "Github",
@@ -128,7 +128,7 @@ $sdk = new SdkFacade([
         ],
         [
             "name" => "Google",
-            "client_id" => "5643357876545678",
+            "client_id" => "AIzaSyBvIDmxh1YH6Ou6C46UL3gBAuyess5D2xo",
             "client_secret" => "vuwi7x9qh0rsx9dbpsh3"]
     ]
 );
