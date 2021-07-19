@@ -93,25 +93,19 @@ function getGoogleUser() {
     $tokenURL = 'https://www.googleapis.com/oauth2/v4/token';
     $baseURL = 'https://localhost/gg-success';
 
-    if (isset($_GET['code'])) {
-        if(!isset($_GET['state']) || $_SESSION['state'] != $_GET['state']) {
-            header('Location: ' . $baseURL . '?error=invalid_state');
-            die();
-        }
-        $ch = curl_init($tokenURL);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-            'grant_type' => 'authorization_code',
-            'client_id' => GOOGLE_CLIENT_ID,
-            'client_secret' => GOOGLE_CLIENT_SECRET,
-            'redirect_uri' => $baseURL,
-            'code' => $_GET['code']
-        ]));
-        $data = json_decode(curl_exec($ch), true);
-        $jwt = explode('.', $data['id_token']);
-        $res = json_decode(base64_decode($jwt[1]), true);
-		print($res);
-    }
+	$ch = curl_init($tokenURL);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+		'grant_type' => 'authorization_code',
+		'client_id' => GOOGLE_CLIENT_ID,
+		'client_secret' => GOOGLE_CLIENT_SECRET,
+		'redirect_uri' => $baseURL,
+		'code' => $_GET['code']
+	]));
+	$data = json_decode(curl_exec($ch), true);
+	$jwt = explode('.', $data['id_token']);
+	$res = json_decode(base64_decode($jwt[1]), true);
+	print($res);
 }
 function getDiscordUser() {
     $tokenURL = 'https://discord.com/api/oauth2/token';
@@ -180,6 +174,6 @@ switch ($route) {
 		break;
 		
 	default:
-		echo "404: Route $route not found";
+		echo "not_found";
 		break;
 }
