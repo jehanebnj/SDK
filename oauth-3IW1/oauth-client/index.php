@@ -7,7 +7,7 @@ const FACEBOOK_CLIENT_SECRET = '6235441740719833f6405bd92533fd36';
 const GOOGLE_CLIENT_ID = '324837892217-5daq38h2b02mgds10nk09lftvecbof1n.apps.googleusercontent.com';
 const GOOGLE_CLIENT_SECRET = '_BD6x1EyHn-H-MzZmPmyiopN';
 const DISCORD_CLIENT_ID = '866750937899859968';
-const DISCORD_CLIENT_SECRET = '1CSi64JYRxFNXqcDdYYRyUFLNXiqhrK9';
+const DISCORD_CLIENT_SECRET = '2ZxWqM5ltmkWPZK-aFx8XPt9amhKx3VA';
  
 $authorizeURL = 'https://accounts.google.com/o/oauth2/v2/auth';
 
@@ -52,11 +52,10 @@ function home()
     );
     $google_href = $authorizeURL.'?'.http_build_query($params);
 
-	
-	echo '<a href="https://localhost:8081/auth?response_type=code&client_id=${client_id}&scope=basic&state=azerty">oauth-server</a> <br>';
-	echo '<a href="https://facebook.com/v11.0/dialog/oauth?response_type=code&client_id=${FACEBOOK_CLIENT_ID}&redirect_uri=https://localhost/fb-success">Provider Facebook</a> <br>';
-	echo '<a href="${google_href}">Provider Google</a> <br>';
-	echo '<a href="https://discord.com/api/oauth2/authorize?client_id=${dIScORD_client_id}&redirect_uri=https://localhost/dc-success&response_type=code&scope=email%20identify">Provider Discord</a>';
+	echo "<a href='https://localhost:8081/auth?response_type=code&client_id=${client_id}&scope=basic&state=azerty'>oauth-server</a> <br>";
+	echo "<a href='https://facebook.com/v11.0/dialog/oauth?response_type=code&client_id=${fACEBOOK_client_id}&redirect_uri=https://localhost/fb-success'>Provider Facebook</a> <br>";
+	echo "<a href='${google_href}'>Provider Google</a> <br>";
+	echo "<a href='https://discord.com/api/oauth2/authorize?client_id=${dIScORD_client_id}&redirect_uri=https://localhost/dc-success&response_type=code&scope=email%20identify'>Provider Discord</a>";
 }
 
 function success()
@@ -105,7 +104,7 @@ function getGoogleUser() {
 	$data = json_decode(curl_exec($ch), true);
 	$jwt = explode('.', $data['id_token']);
 	$res = json_decode(base64_decode($jwt[1]), true);
-	print($res);
+	print_r($res);
 }
 function getDiscordUser() {
     $tokenURL = 'https://discord.com/api/oauth2/token';
