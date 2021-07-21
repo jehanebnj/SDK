@@ -1,17 +1,19 @@
 <?php
 
-const CLIENT_ID = 'client_60f324e98d1cb3.40889045';
-const CLIENT_SECRET = '626fe6480483a000f2073f1a612944aacd6ae230';
+const CLIENT_ID = 'client_60f5be9749af45.12185462';
+const CLIENT_SECRET = '793c39cd897be7c8dc8826880b45fe1875b21f9f';
 const FACEBOOK_CLIENT_ID = '363716535469209';
 const FACEBOOK_CLIENT_SECRET = '6235441740719833f6405bd92533fd36';
 const GOOGLE_CLIENT_ID = '324837892217-5daq38h2b02mgds10nk09lftvecbof1n.apps.googleusercontent.com';
 const GOOGLE_CLIENT_SECRET = '_BD6x1EyHn-H-MzZmPmyiopN';
 const DISCORD_CLIENT_ID = '866750937899859968';
 const DISCORD_CLIENT_SECRET = '2ZxWqM5ltmkWPZK-aFx8XPt9amhKx3VA';
- 
+
 $authorizeURL = 'https://accounts.google.com/o/oauth2/v2/auth';
 
+
 $tokenURL = 'https://www.googleapis.com/oauth2/v4/token';
+
 $baseURL = 'https://' . $_SERVER['SERVER_NAME'] . '/gg-success';
 
 session_start();
@@ -23,7 +25,7 @@ function getUser($params)
 		. "&client_secret=" . CLIENT_SECRET
 		. "&" . http_build_query($params));
 	$token = json_decode($result, true)["access_token"];
-	// GET USER by TOKEN
+	// GET USER avec TOKEN
 	$context = stream_context_create([
 		'http' => [
 			'method' => "GET",
@@ -52,7 +54,7 @@ function home()
     );
     $google_href = $authorizeURL.'?'.http_build_query($params);
 
-	echo "<a href='https://localhost:8081/auth?response_type=code&client_id=${client_id}&scope=basic&state=azerty'>oauth-server</a> <br>";
+	echo "<a href='http://localhost:8081/auth?response_type=code&client_id=${client_id}&scope=basic&state=azerty'>oauth-server</a> <br>";
 	echo "<a href='https://facebook.com/v11.0/dialog/oauth?response_type=code&client_id=${fACEBOOK_client_id}&redirect_uri=https://localhost/fb-success'>Provider Facebook</a> <br>";
 	echo "<a href='${google_href}'>Provider Google</a> <br>";
 	echo "<a href='https://discord.com/api/oauth2/authorize?client_id=${dIScORD_client_id}&redirect_uri=https://localhost/dc-success&response_type=code&scope=email%20identify'>Provider Discord</a>";
@@ -78,34 +80,36 @@ function getFacebookUser()
 		. "&grant_type=authorization_code&code=" . $code
 	);
 	$token = json_decode($result, true)["access_token"];
+	
 	$context = stream_context_create([
 		"http" => [
 			"method" => "GET",
 			"header" => "Authorization: Bearer " . $token
 		]
 	]);
-	$result = file_get_contents("https://graph.facebook.com/me?fields=id,name,email", false, $context);
+	$result = file_get_contents("https://graph.facebook.com/me?fields=id,name,email", false, $context);   
 	var_dump(json_decode($result, true));
 }
 
 function getGoogleUser() {
     $tokenURL = 'https://www.googleapis.com/oauth2/v4/token';
     $baseURL = 'https://localhost/gg-success';
-
-	$ch = curl_init($tokenURL);
+	
+	$ch = curl_init($tokenURL); 
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ 
 		'grant_type' => 'authorization_code',
 		'client_id' => GOOGLE_CLIENT_ID,
 		'client_secret' => GOOGLE_CLIENT_SECRET,
 		'redirect_uri' => $baseURL,
 		'code' => $_GET['code']
 	]));
-	$data = json_decode(curl_exec($ch), true);
+	$data = json_decode(curl_exec($ch), true); 
 	$jwt = explode('.', $data['id_token']);
 	$res = json_decode(base64_decode($jwt[1]), true);
 	print_r($res);
 }
+
 function getDiscordUser() {
     $tokenURL = 'https://discord.com/api/oauth2/token';
     $baseURL = 'https://' . $_SERVER['SERVER_NAME'] . '/dc-success';
